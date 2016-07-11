@@ -19,7 +19,7 @@ contains
   !! Theta 3 is then computed in logarithmic form (to avoid infinites) 
   !! and then transformed back to normal if needed.
 
-  !! All theta functions are (a)-periodic with periodicity '1'
+  !! All theta functions are (a)periodic with periodicity '1'
 
   !!------------------------------------------------
   !!         Externally callable functions
@@ -119,9 +119,7 @@ contains
     complex(KIND=KIND((1.0D0,1.0D0))), intent(IN) :: z,tau
     real(KIND=KIND(1.0D0)), intent(IN) :: a
     logical, intent(IN) :: logged
-    !write(*,*) 'a,z,tau,logged',a,z,tau,logged
     res = iunit*pi*a*(2*z+a*tau) + dologtheta3(z+a*tau,tau)
-   ! write(*,*) 'res:',res
     if(.not.logged)then
        res = exp(res)
     end if
@@ -132,7 +130,6 @@ contains
     complex(KIND=KIND((1.0D0,1.0D0))), intent(IN) :: z,tau
     logical, intent(IN) :: logged
     res = -iunit*pi*0.5d0 + M(z,tau) + dologtheta3(z+0.5d0+tau/2,tau)
-    !!write(*,*) 'dotheta1: ',res
     if(.not.logged)then
        res = exp(res)
     end if
@@ -168,7 +165,7 @@ contains
     end if
   end function dotheta4
   
-  !!Here we do all the modular transformations, everything is in log, scale
+  !!Here we do all the modular transformations, everything is in log scale
   recursive function dologtheta4(z,tau,pass_in) result(res)
     complex(KIND=KIND((1.0D0,1.0D0))) :: res
     complex(KIND=KIND((1.0D0,1.0D0))), intent(IN) :: z,tau
@@ -215,29 +212,19 @@ contains
     !!Initaite to avoid compiler warning     
     tau2=tau
 
-    !!write(*,*) 'Entering theta3:', z,tau
-    !!write(*,*) 'on ',passes,':th pass'
     !! This should put tau in the principal region (approx)
 
     ! If  |Re(tau)| > 1 shift to |Re(tau)|<1
     if(REAL(tau).ge.(0.d0)) then
        tau2 = mod(real(tau+1),2.d0)-1 + iunit*aimag(tau)
-       !!write(*,*) '++++          ',tau2
     elseif(REAL(tau).lt.(0.d0)) then
        tau2 = mod(real(tau-1),2.d0)+1 + iunit*aimag(tau)
-       !!write(*,*) '----          ',tau2
     end if
     
-    !write(*,*) 'New tau:',tau2
-    !write(*,*) 'abs of tau2:',abs(tau2)
-    !write(*,*) 'abs of 1/tau2:',abs(1/tau2)
-
     ! if |Re(tau)| > .6 shift to |Re(tau)| < .6, here theta3 -> theta4
     if(REAL(tau2).gt.(6.d-1)) then
-       !!write(*,*) 'shift -'
        res = dologtheta4(z,tau2-1,passes) !! Shift back
     elseif(REAL(tau2).le.(-(6.d-1))) then
-       !!write(*,*) 'shift +'
        res = dologtheta4(z,tau2+1,passes) !! shift forward
        ! if |tau| < 1 invert to make |tau| > 1
        !!NB: There is a risk that the finite presition will cause both |tau|<1 and |1/tau|<1.
@@ -245,7 +232,6 @@ contains
        !!We are then content with tau2<0.98 since this will converet almost as fast anyway.
     elseif((ABS(tau2).lt.0.98d0).AND.(AIMAG(tau2).lt.0.98d0)) then
        !! If tau is small. Invert
-       !!write(*,*) 'invert'
        tauprime=-1.0d0/tau2
        res = iunit*pi*tauprime*z**2 &
             + dologtheta3(z*tauprime,tauprime,passes) &
@@ -275,20 +261,15 @@ contains
        end if
     end if
     
-    !write(*,*) 'argtheta   z:',z
-    !write(*,*) 'argtheta tau:',tau
-
     !!Reduce  -0.5 < Re(z) < 0.5
     zuse = mod(real(z),1.d0) + iunit*aimag(z)
     !write(*,*) '----         ',zuse
     
     !Swith the sign of z if the iunit part is negative
     if(AIMAG(zuse).lt.(-AIMAG(tau)/2)) then    
-       !     write(*,*) 'z -> -z'
        res = argtheta3(-zuse,tau,passes)
        !!If the argument is to large, shift it away
     elseif(AIMAG(zuse).ge.(AIMAG(tau)/2)) then
-       !     write(*,*) 'shift-y'
        zmin = zuse-tau
        res = -2*pi*iunit*zmin + argtheta3(zmin,tau,passes) - iunit*pi*tau
     else
@@ -304,34 +285,28 @@ contains
     integer :: n
    
     q = exp(iunit*pi*tau)
-    !write(*,*) 'q:',q
     res = (1.d0,0.d0)
-    !!write(*,*) 'qweight:res', res,res
     n=0
     do 
        n = n + 1
-       
        !!OBS splitting qweight=2*q**(n**2)*cos(2*n*z) into two expontentials to get around lage numbers
        qweight=exp(iunit*n*pi*(tau*n+2*z))+exp(iunit*n*pi*(tau*n-2*z))
        res = res + qweight
-       !!write(*,*) 'qweight :res', qweight,res
-       
        !! Terminate on convergence (or NaNs or Zeroes)
        if( isnan(abs(res))) then
-          write(*,*) 'Value is infinite in theta function'
+          write(*,*) 'ERROR: Value is infinite in theta function'
           write(*,*) 'z,tau:',z,tau
           call exit(-1)
        elseif( abs(res).eq.0.d0 ) then
           write(*,*) 'Value is zero'
           exit
        elseif((n.ge.3).and.((res+qweight).eq.res)) then
-          !write(*,*) 'Converged'
+          !!Converged to within machine precision
           exit
        end if
        
     end do
     
-    !!write(*,*) 'res:',res
     !!Take log on number (to avoid eventual divergentices in the erlier transformations)
     res=log(res)
     
