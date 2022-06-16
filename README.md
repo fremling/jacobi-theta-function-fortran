@@ -1,6 +1,17 @@
 # Jacobi Theta functions for fortran
 Fortran code for jacobi theta funcitons.
+
+The code implements 
+
+$$\theta_3(z,\tau) = \sum_{n=-\infty}^{\infty} e^{\imath \pi \tau n^2} e^{\imath 2 \pi n z}$$
+
+
 For and extensive list of properties, see the NIST [DLMF website](https://dlmf.nist.gov/20).
+Keep howeer in mind that this uses the convention that ads an extra $\pi$ to z compaared no NIST.
+This means that here 
+$\theta_3(z+1,\tau) = \theta_3(z,\tau)$
+wheas NIST has
+$\theta_3(z+\pi,\tau) = \theta_3(z,\tau).$
 
 
 The main file jacobitheta.f90 is stand alone and can be included using `use jacobitheta`.
@@ -14,9 +25,8 @@ All four basic jacobi theta functions are implemented
     theta3(z,tau)
     theta4(z,tau)
     
-as well as the gernalized jacobi theta function
-
-    thetagen(a,b,z,tau)
+as well as the gernalized jacobi theta function `thetagen(a,b,z,tau)` as 
+$$\theta_{a,b}(z,\tau) = \sum_{n=-\infty}^{\infty} e^{\imath \pi \tau (n+a)^2} e^{\imath 2 \pi (n+a) (z+b)}$$
 
 where
 
