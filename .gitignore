@@ -1,0 +1,4 @@
+*.mod
+*.o
+*~
+run_test_suite_jacobitheta
