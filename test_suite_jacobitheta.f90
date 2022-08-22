@@ -583,7 +583,7 @@ contains
     do N=1,Steps
        z=zlist(N)
        tau=taulist(N)
-       test=theta3(z,tau)
+       test=theta3(z,tau,maxiter=100)
        Error=abs(test-thetalist(N))
        if(abs(error).gt.1.d-15)then
           write(*,*) 'tau:',tau
