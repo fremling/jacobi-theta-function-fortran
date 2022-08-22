@@ -547,7 +547,7 @@ contains
 
   subroutine test_jacobi3_special_tricky_values()
     integer :: N
-    integer, parameter :: Steps=3
+    integer, parameter :: Steps=5
     complex(KIND=dpc) :: test,z,tau
     complex(KIND=dpc) :: taulist(Steps),zlist(Steps),thetalist(Steps)
     real(kind=dp) :: Error
@@ -567,6 +567,16 @@ contains
     thetalist(3)=(-17.861938755626756d0     ,  148.48032551299363d0)
     taulist(3)=(0.37202495190115092d0     , 0.92822272928588978d0)
     zlist(3)=(-0.15500984054594991d0     ,  1.2618627643852796d0)
+
+
+    thetalist(4)=(655869.94733675814d0     ,  592671.58801614877d0)
+    taulist(4)=(0.16552260224358278d0     , 1.01d0)
+    zlist(4)=(-0.11073905127262d0     ,  -2.1d0)
+
+    
+    thetalist(5)=(-46.426517230164478d0,-41.380842988230604d0)
+    taulist(5)=(0.7792256d0     , 1.0d-7)
+    zlist(5)=(-0.0d0     ,  0.0d0)
 
 
     write(*,*) 'Testing special tricky values for theta3'

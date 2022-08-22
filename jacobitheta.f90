@@ -179,25 +179,37 @@ contains
     res = dologtheta3(z+0.5d0,tau,passes)
   end function dologtheta4
   
-  recursive function dologtheta3(z,tau,pass_in) result(res)
+  recursive function dologtheta3(z,tau,pass_in,maxiter) result(res)
     complex(KIND=KIND((1.0D0,1.0D0))) :: res
     complex(KIND=KIND((1.0D0,1.0D0))), intent(IN) :: z,tau
     complex(KIND=KIND((1.0D0,1.0D0))) :: tau2,tauprime
-    integer, intent(in), optional :: pass_in !!Loop counter!!
-    integer :: passes
+    integer, intent(in), optional :: pass_in, maxiter !!Loop counter!!
+    integer :: passes,local_maxiter
+    if(.not.present(maxiter))then
+       local_maxiter=1000       
+    else
+       local_maxiter=maxiter
+    end if
+
     if(.not.present(pass_in))then
        passes=1
     else
        passes=pass_in+1
-       if(passes.gt.1000)then
-          !! STDERR = 0 !!
-          write(0,*) 'ERROR: More than 1000 modular transformations have been performed!'
-          write(0,*) '       This should not happen. Please file a bug-report!'
-          write(0,*) '       Input z  =',z
-          write(0,*) '       Input tau=',tau
-          call exit(-1)
-       end if
     end if
+    if(passes.gt.local_maxiter)then
+       !! STDERR = 0 !!
+       write(*,*) 'ERROR: More than ',local_maxiter,' modular transformations have been performed!'
+       write(*,*) '       This can happen if tau is faar from the fundamental domain!'
+       write(*,*) '       Either increase maxiter or find perform some transformations by hand...'
+       write(*,*) '       Input z  =',z
+       write(*,*) '       Input tau=',tau
+       call exit(-1)
+       end if
+
+    !!write(*,*) '    passes  =',passes
+    !!write(*,*) '    First Input z  =',z
+    !!write(*,*) '    FIrst Input tau=',tau
+
     
     !!Check that computation has a chance of converging
     !! STDERR = 0 !!
@@ -242,36 +254,57 @@ contains
     
   end function dologtheta3
   
-  recursive function argtheta3(z,tau,pass_in) result(res)
+  recursive function argtheta3(z,tau,pass_in,maxiter) result(res)
     complex(KIND=KIND((1.0D0,1.0D0))) :: res
     complex(KIND=KIND((1.0D0,1.0D0))), intent(IN) :: z,tau
     complex(KIND=KIND((1.0D0,1.0D0))) :: zuse,zmin
-    integer, intent(in), optional :: pass_in !!Loop counter!!
-    integer :: passes
+    integer, intent(in), optional :: pass_in, maxiter !!Loop counter!!
+    integer :: passes,local_maxiter
+
+    integer :: quotient
+
+    
+    if(.not.present(maxiter))then
+       local_maxiter=10
+    else
+       local_maxiter=maxiter
+    end if
+    
     if(.not.present(pass_in))then
        passes=1
     else
        passes=pass_in+1
-       if(passes.gt.1000)then
-          write(*,*) 'ERROR: More than 1000 modular transformations have been performed!'
-          write(*,*) '       This should not happen. Please file a bug-report!'
-          write(*,*) '       Input z  =',z
-          write(*,*) '       Input tau=',tau
-          call exit(-1)
-       end if
     end if
+
+    !write(*,*) '    passes  =',passes
+    !write(*,*) '       Input z  =',z
+    !write(*,*) '       Input tau=',tau
+        
+    if(passes.gt.local_maxiter)then
+       write(*,*) 'ERROR: More than ',local_maxiter,' shifts of z have been performed!'
+       write(*,*) '       This should not happen! Please file a bug report!'
+       write(*,*) '       Input z  =',z
+       write(*,*) '       Input tau=',tau
+       call exit(-1)
+    end if
+
     
     !!Reduce  -0.5 < Re(z) < 0.5
     zuse = mod(real(z),1.d0) + iunit*aimag(z)
     !write(*,*) '----         ',zuse
-    
+
+
     !Swith the sign of z if the iunit part is negative
     if(AIMAG(zuse).lt.(-AIMAG(tau)/2)) then    
-       res = argtheta3(-zuse,tau,passes)
+       res = argtheta3(-zuse,tau,passes,local_maxiter)
        !!If the argument is to large, shift it away
     elseif(AIMAG(zuse).ge.(AIMAG(tau)/2)) then
-       zmin = zuse-tau
-       res = -2*pi*iunit*zmin + argtheta3(zmin,tau,passes) - iunit*pi*tau
+       !!write(*,*) 'The quotient is',AIMAG(zuse)/AIMAG(tau)
+       quotient = floor(AIMAG(zuse)/AIMAG(tau)+.5) !!!also automatic flooring
+       !!write(*,*) 'The floor is',quotient
+       
+       zmin = zuse-tau*quotient
+       res = -2*pi*quotient*iunit*zmin + argtheta3(zmin,tau,passes,local_maxiter) - iunit*pi*tau*quotient*quotient
     else
        res = calctheta3(zuse,tau)
     end if
