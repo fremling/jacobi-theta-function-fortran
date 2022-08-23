@@ -26,6 +26,7 @@ All four basic jacobi theta functions are implemented
     theta4(z,tau)
     
 as well as the gernalized jacobi theta function `thetagen(a,b,z,tau)` as 
+
 $$\theta_{a,b}(z,\tau) = \sum_{n=-\infty}^{\infty} e^{\imath \pi \tau (n+a)^2} e^{\imath 2 \pi (n+a) (z+b)}$$
 
 where
@@ -47,4 +48,5 @@ The code also has the option to compute the logarithm of the theta functions usi
 
 and this is actually the form used when performing modular transformations. 
 
+A special tanks to Stéphane Laurent for pointin out a few bugs when working on an [R-implementation](https://github.com/stla/jacobi) of the [theta-funcitons](https://github.com/stla/jacobi).
 
